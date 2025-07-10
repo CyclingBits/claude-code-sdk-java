@@ -24,7 +24,7 @@ fun main() = runBlocking {
         options {
             allowedTools = listOf("read", "write", "edit")
             systemPrompt = "You are a Kotlin expert. Focus on idiomatic Kotlin patterns."
-            workingDirectory = Paths.get(".")
+            cwd = Paths.get(".")
             maxTurns = 5
         }
     }.textContent().collect { text ->

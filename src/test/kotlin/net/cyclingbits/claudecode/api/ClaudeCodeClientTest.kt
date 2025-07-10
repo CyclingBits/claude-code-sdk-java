@@ -22,7 +22,7 @@ class ClaudeCodeClientTest {
                 systemPrompt = "Test system prompt"
                 maxThinkingTokens = 10000
                 model = "claude-3-5-sonnet-20241022"
-                workingDirectory = kotlin.io.path.Path("/tmp")
+                cwd = kotlin.io.path.Path("/tmp")
                 maxTurns = 3
                 continueConversation = false
             }
@@ -51,7 +51,7 @@ class ClaudeCodeClientTest {
         builder.appendSystemPrompt = "Append"
         builder.maxThinkingTokens = 5000
         builder.model = "model-name"
-        builder.workingDirectory = kotlin.io.path.Path("/work")
+        builder.cwd = kotlin.io.path.Path("/work")
         builder.maxTurns = 10
         builder.continueConversation = true
         builder.resume = "token123"

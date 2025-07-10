@@ -1,12 +1,13 @@
 package net.cyclingbits.claudecode.api
 
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.future.future
-import kotlinx.coroutines.runBlocking
 import net.cyclingbits.claudecode.internal.client.InternalClient
 import net.cyclingbits.claudecode.types.ClaudeCodeOptions
 import net.cyclingbits.claudecode.types.Message
+import java.io.Closeable
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
@@ -17,24 +18,36 @@ import java.util.concurrent.CompletableFuture
  * 
  * Example usage (Kotlin):
  * ```kotlin
- * val client = ClaudeCodeClient()
- * client.query("Help me write a function").collect { message ->
- *     println(message)
+ * ClaudeCodeClient().use { client ->
+ *     client.query("Help me write a function").collect { message ->
+ *         println(message)
+ *     }
  * }
  * ```
  * 
  * Example usage (Java):
  * ```java
- * ClaudeCodeClient client = new ClaudeCodeClient();
- * client.queryAsync("Help me write a function").thenAccept(messages -> {
- *     messages.forEach(System.out::println);
- * });
+ * try (ClaudeCodeClient client = new ClaudeCodeClient()) {
+ *     client.queryAsync("Help me write a function").thenAccept(messages -> {
+ *         messages.forEach(System.out::println);
+ *     });
+ * }
  * ```
  */
 public class ClaudeCodeClient @JvmOverloads constructor(
     private val cliPath: Path? = null
-) {
+) : AutoCloseable, Closeable {
     private val internalClient = InternalClient()
+    
+    /**
+     * Coroutine scope for managing async operations.
+     * Uses SupervisorJob to prevent failures from cancelling other operations.
+     */
+    private val scope = CoroutineScope(
+        SupervisorJob() + 
+        Dispatchers.IO + 
+        CoroutineName("ClaudeCodeClient")
+    )
     
     /**
      * Send a query to Claude and receive a stream of messages.
@@ -80,8 +93,7 @@ public class ClaudeCodeClient @JvmOverloads constructor(
         prompt: String,
         options: ClaudeCodeOptions = ClaudeCodeOptions()
     ): CompletableFuture<List<Message>> {
-        @Suppress("DelicateCoroutinesApi")
-        return kotlinx.coroutines.GlobalScope.future {
+        return scope.future {
             queryAll(prompt, options)
         }
     }
@@ -125,6 +137,16 @@ public class ClaudeCodeClient @JvmOverloads constructor(
     public suspend fun query(block: QueryBuilder.() -> Unit): Flow<Message> {
         val builder = QueryBuilder().apply(block)
         return query(builder.prompt, builder.buildOptions())
+    }
+    
+    /**
+     * Close the client and release all resources.
+     * 
+     * This cancels all ongoing coroutines started by this client.
+     * After calling close(), the client should not be used anymore.
+     */
+    override fun close() {
+        scope.cancel("Client closed")
     }
 }
 
@@ -197,9 +219,9 @@ public class OptionsBuilder(private var options: ClaudeCodeOptions) {
         set(value) { options = options.copy(model = value) }
     
     /**
-     * Working directory.
+     * Current working directory.
      */
-    public var workingDirectory: Path?
+    public var cwd: Path?
         get() = options.cwd
         set(value) { options = options.copy(cwd = value) }
     

@@ -10,6 +10,7 @@ import net.cyclingbits.claudecode.exceptions.*
 import net.cyclingbits.claudecode.types.ClaudeCodeOptions
 import net.cyclingbits.claudecode.types.McpHttpServerConfig
 import net.cyclingbits.claudecode.types.McpSSEServerConfig
+import net.cyclingbits.claudecode.types.McpServerConfig
 import net.cyclingbits.claudecode.types.McpStdioServerConfig
 import net.cyclingbits.claudecode.types.PermissionMode
 import java.io.File
@@ -101,120 +102,143 @@ internal class ProcessTransport(
         throw CLINotFoundException()
     }
     
-    private fun buildCommand(): List<String> {
+    private fun buildCommand(): List<String> = buildList {
         val actualCliPath = cliPath ?: findCli()
-        val cmd = mutableListOf(
-            actualCliPath.toString(),
-            "--output-format", "stream-json",
-            "--verbose"
-        )
-        
+        add(actualCliPath.toString())
+        addAll(buildBaseFlags())
+        addAll(buildSystemPromptFlags())
+        addAll(buildToolFlags())
+        addAll(buildExecutionFlags())
+        addAll(buildConversationFlags())
+        addAll(buildMcpFlags())
+        addAll(buildFinalArguments())
+    }
+    
+    private fun buildBaseFlags(): List<String> = listOf(
+        "--output-format", "stream-json",
+        "--verbose"
+    )
+    
+    private fun buildSystemPromptFlags(): List<String> = buildList {
         options.systemPrompt?.let {
-            cmd.add("--system-prompt")
-            cmd.add(it)
+            add("--system-prompt")
+            add(it)
         }
         
         options.appendSystemPrompt?.let {
-            cmd.add("--append-system-prompt")
-            cmd.add(it)
+            add("--append-system-prompt")
+            add(it)
         }
-        
+    }
+    
+    private fun buildToolFlags(): List<String> = buildList {
         if (options.allowedTools.isNotEmpty()) {
-            cmd.add("--allowedTools")
-            cmd.add(options.allowedTools.joinToString(","))
-        }
-        
-        options.maxTurns?.let {
-            cmd.add("--max-turns")
-            cmd.add(it.toString())
+            add("--allowedTools")
+            add(options.allowedTools.joinToString(","))
         }
         
         if (options.disallowedTools.isNotEmpty()) {
-            cmd.add("--disallowedTools")
-            cmd.add(options.disallowedTools.joinToString(","))
-        }
-        
-        options.model?.let {
-            cmd.add("--model")
-            cmd.add(it)
+            add("--disallowedTools")
+            add(options.disallowedTools.joinToString(","))
         }
         
         options.permissionPromptToolName?.let {
-            cmd.add("--permission-prompt-tool")
-            cmd.add(it)
+            add("--permission-prompt-tool")
+            add(it)
         }
         
         options.permissionMode?.let {
-            cmd.add("--permission-mode")
-            cmd.add(when (it) {
-                PermissionMode.DEFAULT -> "default"
-                PermissionMode.ACCEPT_EDITS -> "acceptEdits"
-                PermissionMode.BYPASS_PERMISSIONS -> "bypassPermissions"
-            })
+            add("--permission-mode")
+            add(permissionModeToString(it))
+        }
+    }
+    
+    private fun buildExecutionFlags(): List<String> = buildList {
+        options.maxTurns?.let {
+            add("--max-turns")
+            add(it.toString())
         }
         
+        options.model?.let {
+            add("--model")
+            add(it)
+        }
+    }
+    
+    private fun buildConversationFlags(): List<String> = buildList {
         if (options.continueConversation) {
-            cmd.add("--continue")
+            add("--continue")
         }
         
         options.resume?.let {
-            cmd.add("--resume")
-            cmd.add(it)
+            add("--resume")
+            add(it)
         }
-        
+    }
+    
+    private fun buildMcpFlags(): List<String> = buildList {
         if (options.mcpServers.isNotEmpty()) {
-            val mcpConfig = buildJsonObject {
-                putJsonObject("mcpServers") {
-                    options.mcpServers.forEach { (name, config) ->
-                        putJsonObject(name) {
-                            // Serialize MCP server config
-                            when (config) {
-                                is McpStdioServerConfig -> {
-                                    config.type?.let { put("type", it) }
-                                    put("command", config.command)
-                                    if (config.args.isNotEmpty()) {
-                                        putJsonArray("args") {
-                                            config.args.forEach { add(it) }
-                                        }
-                                    }
-                                    if (config.env.isNotEmpty()) {
-                                        putJsonObject("env") {
-                                            config.env.forEach { (k, v) -> put(k, v) }
-                                        }
-                                    }
-                                }
-                                is McpSSEServerConfig -> {
-                                    put("type", config.type)
-                                    put("url", config.url)
-                                    if (config.headers.isNotEmpty()) {
-                                        putJsonObject("headers") {
-                                            config.headers.forEach { (k, v) -> put(k, v) }
-                                        }
-                                    }
-                                }
-                                is McpHttpServerConfig -> {
-                                    put("type", config.type)
-                                    put("url", config.url)
-                                    if (config.headers.isNotEmpty()) {
-                                        putJsonObject("headers") {
-                                            config.headers.forEach { (k, v) -> put(k, v) }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            add("--mcp-config")
+            add(buildMcpConfig().toString())
+        }
+    }
+    
+    private fun buildFinalArguments(): List<String> = listOf(
+        "--print",
+        prompt
+    )
+    
+    private fun permissionModeToString(mode: PermissionMode): String = when (mode) {
+        PermissionMode.DEFAULT -> "default"
+        PermissionMode.ACCEPT_EDITS -> "acceptEdits"
+        PermissionMode.BYPASS_PERMISSIONS -> "bypassPermissions"
+    }
+    
+    private fun buildMcpConfig(): JsonObject = buildJsonObject {
+        putJsonObject("mcpServers") {
+            options.mcpServers.forEach { (name, config) ->
+                putJsonObject(name) {
+                    serializeMcpServerConfig(config)
+                }
+            }
+        }
+    }
+    
+    private fun JsonObjectBuilder.serializeMcpServerConfig(config: McpServerConfig) {
+        when (config) {
+            is McpStdioServerConfig -> {
+                config.type?.let { put("type", it) }
+                put("command", config.command)
+                if (config.args.isNotEmpty()) {
+                    putJsonArray("args") {
+                        config.args.forEach { add(it) }
+                    }
+                }
+                if (config.env.isNotEmpty()) {
+                    putJsonObject("env") {
+                        config.env.forEach { (k, v) -> put(k, v) }
                     }
                 }
             }
-            cmd.add("--mcp-config")
-            cmd.add(mcpConfig.toString())
+            is McpSSEServerConfig -> {
+                put("type", config.type)
+                put("url", config.url)
+                if (config.headers.isNotEmpty()) {
+                    putJsonObject("headers") {
+                        config.headers.forEach { (k, v) -> put(k, v) }
+                    }
+                }
+            }
+            is McpHttpServerConfig -> {
+                put("type", config.type)
+                put("url", config.url)
+                if (config.headers.isNotEmpty()) {
+                    putJsonObject("headers") {
+                        config.headers.forEach { (k, v) -> put(k, v) }
+                    }
+                }
+            }
         }
-        
-        // Add --print and prompt at the end (matches Python SDK)
-        cmd.add("--print")
-        cmd.add(prompt)
-        
-        return cmd
     }
     
     override suspend fun connect() {

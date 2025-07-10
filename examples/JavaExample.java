@@ -7,8 +7,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class JavaExample {
     public static void main(String[] args) throws Exception {
-        // Create client
-        ClaudeCodeClient client = ClaudeCode.createClient();
+        // Create client with try-with-resources for automatic cleanup
+        try (ClaudeCodeClient client = ClaudeCode.createClient()) {
         
         // Example 1: Simple async query
         System.out.println("=== Example 1: Simple Async Query ===");
@@ -97,5 +97,6 @@ public class JavaExample {
                 });
             })
             .join();
+        } // End of try-with-resources
     }
 }
