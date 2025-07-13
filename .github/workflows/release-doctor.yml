@@ -10,7 +10,7 @@ jobs:
     name: release doctor
     runs-on: ubuntu-latest
     environment: production-release
-    if: github.repository == 'cyclingbits/claude-code-sdk-java' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release-please') || github.head_ref == 'next')
+    if: github.repository == 'CyclingBits/claude-code-sdk-java' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release-please') || github.head_ref == 'next')
 
     steps:
       - uses: actions/checkout@v4

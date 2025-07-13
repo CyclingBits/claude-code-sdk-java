@@ -7,7 +7,7 @@ on:
 jobs:
   release:
     name: release
-    if: github.ref == 'refs/heads/main' && github.repository == 'cyclingbits/claude-code-sdk-java'
+    if: github.ref == 'refs/heads/main' && github.repository == 'CyclingBits/claude-code-sdk-java'
     runs-on: ubuntu-latest
     environment: production-release
 
@@ -18,6 +18,8 @@ jobs:
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: java
+          package-name: claude-code-sdk-java
 
       - name: Set up Java
         if: ${{ steps.release.outputs.releases_created }}

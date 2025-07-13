@@ -1,5 +1,5 @@
 # workflow for re-running publishing to Sonatype in case it fails for some reason
-# you can run this workflow by navigating to https://www.github.com/cyclingbits/claude-code-sdk-java/actions/workflows/publish-sonatype.yml
+# you can run this workflow by navigating to https://www.github.com/CyclingBits/claude-code-sdk-java/actions/workflows/publish-sonatype.yml
 name: Publish Sonatype
 on:
   workflow_dispatch:
