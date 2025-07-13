@@ -26,6 +26,35 @@ class JsonMessageParserTest {
     }
     
     @Test
+    fun `should parse user message with content as array`() {
+        val json = buildJsonObject {
+            put("type", "user")
+            putJsonObject("message") {
+                putJsonArray("content") {
+                    addJsonObject {
+                        put("type", "text")
+                        put("text", "Hello, ")
+                    }
+                    addJsonObject {
+                        put("type", "text")
+                        put("text", "Claude!")
+                    }
+                    addJsonObject {
+                        put("type", "image")
+                        put("source", "base64data")
+                    }
+                }
+            }
+        }
+        
+        val message = parser.parseMessage(json)
+        
+        assertNotNull(message)
+        assertTrue(message is net.cyclingbits.claudecode.types.UserMessage)
+        assertEquals("Hello, \nClaude!", message.content)
+    }
+    
+    @Test
     fun `should parse assistant message with text block`() {
         val json = buildJsonObject {
             put("type", "assistant")

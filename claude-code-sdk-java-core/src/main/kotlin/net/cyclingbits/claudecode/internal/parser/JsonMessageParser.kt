@@ -33,7 +33,24 @@ internal class JsonMessageParser {
     
     private fun parseUserMessage(data: JsonObject): UserMessage? {
         val messageObj = data["message"]?.jsonObject ?: return null
-        val content = messageObj["content"]?.jsonPrimitive?.content ?: return null
+        val contentElement = messageObj["content"] ?: return null
+        
+        val content = when (contentElement) {
+            is JsonPrimitive -> contentElement.content
+            is JsonArray -> {
+                // Handle content as array of blocks, concatenate text blocks
+                contentElement.mapNotNull { element ->
+                    val block = element.jsonObject
+                    val blockType = block["type"]?.jsonPrimitive?.content
+                    if (blockType == "text") {
+                        block["text"]?.jsonPrimitive?.content
+                    } else {
+                        null
+                    }
+                }.joinToString("\n")
+            }
+            else -> return null
+        }
         
         return UserMessage(content)
     }
