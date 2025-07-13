@@ -12,13 +12,30 @@ repositories {
     mavenCentral()
 }
 
-extra["signingInMemoryKey"] = System.getenv("GPG_SIGNING_KEY")
-extra["signingInMemoryKeyId"] = System.getenv("GPG_SIGNING_KEY_ID")
-extra["signingInMemoryKeyPassword"] = System.getenv("GPG_SIGNING_PASSWORD")
+// Set signing properties from environment variables or Gradle properties
+if (project.hasProperty("signingInMemoryKey")) {
+    extra["signingInMemoryKey"] = project.property("signingInMemoryKey")
+} else {
+    extra["signingInMemoryKey"] = System.getenv("GPG_SIGNING_KEY")
+}
+
+if (project.hasProperty("signingInMemoryKeyId")) {
+    extra["signingInMemoryKeyId"] = project.property("signingInMemoryKeyId")
+} else {
+    extra["signingInMemoryKeyId"] = System.getenv("GPG_SIGNING_KEY_ID")
+}
+
+if (project.hasProperty("signingInMemoryKeyPassword")) {
+    extra["signingInMemoryKeyPassword"] = project.property("signingInMemoryKeyPassword")
+} else {
+    extra["signingInMemoryKeyPassword"] = System.getenv("GPG_SIGNING_PASSWORD")
+}
 
 configure<MavenPublishBaseExtension> {
     // Only sign if credentials are available
-    if (!System.getenv("GPG_SIGNING_KEY").isNullOrEmpty()) {
+    val hasSigningKey = !System.getenv("GPG_SIGNING_KEY").isNullOrEmpty() || 
+                       project.hasProperty("signingInMemoryKey")
+    if (hasSigningKey) {
         signAllPublications()
     }
     publishToMavenCentral()

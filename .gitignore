@@ -48,3 +48,5 @@ bin/
 external-sources/
 /.idea/
 /tmp/
+/.claude/
+/CLAUDE.md
