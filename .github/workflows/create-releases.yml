@@ -14,12 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: java
-          package-name: claude-code-sdk-java
 
       - name: Set up Java
         if: ${{ steps.release.outputs.releases_created }}
