@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.1.0...v1.1.1) (2025-07-14)
+
+
+### Documentation
+
+* Add release-please markers to badges ([badf7c5](https://github.com/CyclingBits/claude-code-sdk-java/commit/badf7c5aee71d582166d90887e810aa6c67c7c06))
+
 ## [1.1.0](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.0.1...v1.1.0) (2025-07-14)
 
 
