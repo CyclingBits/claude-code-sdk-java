@@ -38,7 +38,7 @@ class ProcessTransportTest {
         @Suppress("UNCHECKED_CAST")
         val command = buildCommandMethod.invoke(transport) as List<String>
         
-        assertTrue(command.contains("--print"))
+        assertTrue(command.contains("-p"))
         assertTrue(command.contains("--output-format"))
         assertTrue(command.contains("stream-json"))
         assertTrue(command.contains("--verbose"))

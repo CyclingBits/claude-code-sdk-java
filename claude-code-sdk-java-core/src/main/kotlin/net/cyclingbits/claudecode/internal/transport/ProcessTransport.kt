@@ -227,7 +227,7 @@ internal class ProcessTransport(
     }
     
     private fun buildFinalArguments(): List<String> = listOf(
-        "--print",
+        "-p",  // Use short form as it's more reliable
         prompt
     )
     
