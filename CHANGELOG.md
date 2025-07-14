@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.0.1...v1.1.0) (2025-07-14)
+
+
+### Features
+
+* Add comprehensive unit tests and fix test suite ([6b68433](https://github.com/CyclingBits/claude-code-sdk-java/commit/6b684339889c0bf2a21ca3daa6df9d17c0fd9f44))
+
+
+### Bug Fixes
+
+* Handle UserMessage content as JsonArray in parser ([6684181](https://github.com/CyclingBits/claude-code-sdk-java/commit/66841819b0a68ffaa43b5414ec53a6bcd74ad0ec))
+
+
+### Documentation
+
+* Add README with installation instructions and badges ([78127af](https://github.com/CyclingBits/claude-code-sdk-java/commit/78127af835fb55598476ae25be5e0ddfff8f55c9))
+
 ## [1.0.1](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.0.0...v1.0.1) (2025-07-13)
 
 
