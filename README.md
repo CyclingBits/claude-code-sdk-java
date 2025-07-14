@@ -13,7 +13,7 @@ JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/
 <dependency>
     <groupId>net.cyclingbits</groupId>
     <artifactId>claude-code-sdk-java</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
@@ -21,14 +21,14 @@ JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/
 ### Gradle
 <!-- x-release-please-start-version -->
 ```gradle
-implementation 'net.cyclingbits:claude-code-sdk-java:1.0.1'
+implementation 'net.cyclingbits:claude-code-sdk-java:1.1.0'
 ```
 <!-- x-release-please-end -->
 
 ### Gradle (Kotlin DSL)
 <!-- x-release-please-start-version -->
 ```kotlin
-implementation("net.cyclingbits:claude-code-sdk-java:1.0.1")
+implementation("net.cyclingbits:claude-code-sdk-java:1.1.0")
 ```
 <!-- x-release-please-end -->
 
