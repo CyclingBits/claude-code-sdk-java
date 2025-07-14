@@ -1,7 +1,9 @@
 # Claude Code SDK for Java
 
-[![Maven Central](https://img.shields.io/maven-central/v/net.cyclingbits/claude-code-sdk-java)](https://central.sonatype.com/artifact/net.cyclingbits/claude-code-sdk-java/1.0.1)
-[![javadoc](https://javadoc.io/badge2/net.cyclingbits/claude-code-sdk-java/javadoc.svg)](https://javadoc.io/doc/net.cyclingbits/claude-code-sdk-java/1.0.1)
+<!-- x-release-please-start-version -->
+[![Maven Central](https://img.shields.io/maven-central/v/net.cyclingbits/claude-code-sdk-java)](https://central.sonatype.com/artifact/net.cyclingbits/claude-code-sdk-java/1.1.0)
+[![javadoc](https://javadoc.io/badge2/net.cyclingbits/claude-code-sdk-java/javadoc.svg)](https://javadoc.io/doc/net.cyclingbits/claude-code-sdk-java/1.1.0)
+<!-- x-release-please-end -->
 
 JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/Flow) and Java (CompletableFuture) APIs.
 
