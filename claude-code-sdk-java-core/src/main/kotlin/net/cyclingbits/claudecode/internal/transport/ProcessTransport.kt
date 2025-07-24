@@ -22,12 +22,36 @@ import kotlin.io.path.isExecutable
 import kotlin.io.path.isRegularFile
 
 /**
+ * Factory interface for creating processes.
+ * This abstraction allows for easier testing by enabling process mocking.
+ */
+internal interface ProcessFactory {
+    fun createProcess(command: List<String>, workingDir: File? = null, environment: Map<String, String> = emptyMap()): Process
+}
+
+/**
+ * Default implementation of ProcessFactory using ProcessBuilder.
+ */
+internal class DefaultProcessFactory : ProcessFactory {
+    override fun createProcess(command: List<String>, workingDir: File?, environment: Map<String, String>): Process {
+        val processBuilder = ProcessBuilder(command).apply {
+            workingDir?.let { directory(it) }
+            environment.forEach { (key, value) -> environment()[key] = value }
+            // Redirect stdin to null (matches Python SDK stdin=None)
+            redirectInput(ProcessBuilder.Redirect.from(File(if (System.getProperty("os.name").startsWith("Windows")) "NUL" else "/dev/null")))
+        }
+        return processBuilder.start()
+    }
+}
+
+/**
  * Process-based transport implementation using Claude CLI.
  */
 internal class ProcessTransport(
     private val prompt: String,
     private val options: ClaudeCodeOptions,
-    private val cliPath: Path? = null
+    private val cliPath: Path? = null,
+    private val processFactory: ProcessFactory = DefaultProcessFactory()
 ) : Transport {
     
     private var process: Process? = null
@@ -290,18 +314,14 @@ internal class ProcessTransport(
         }
         
         val command = buildCommand()
-        val processBuilder = ProcessBuilder(command).apply {
-            options.cwd?.let { 
-                directory(it.toFile()) 
-            }
-            environment()["CLAUDE_CODE_ENTRYPOINT"] = CLAUDE_CODE_ENTRYPOINT
-            
-            // Redirect stdin to null (matches Python SDK stdin=None)
-            redirectInput(ProcessBuilder.Redirect.from(File(if (System.getProperty("os.name").startsWith("Windows")) "NUL" else "/dev/null")))
-        }
+        val environment = mapOf("CLAUDE_CODE_ENTRYPOINT" to CLAUDE_CODE_ENTRYPOINT)
         
         try {
-            process = processBuilder.start()
+            process = processFactory.createProcess(
+                command = command,
+                workingDir = options.cwd?.toFile(),
+                environment = environment
+            )
             
             stdoutReader = process!!.inputStream.source().buffer()
             stderrReader = process!!.errorStream.source().buffer()

@@ -23,7 +23,6 @@ import kotlin.time.Duration.Companion.minutes
  * 1. Claude Code CLI must be installed: npm install -g @anthropic-ai/claude-code
  * 2. You must be authenticated
  */
-@Disabled("Requires authentication")
 class ClaudeCodeIntegrationTest {
 
     private lateinit var client: ClaudeCodeClient

@@ -94,31 +94,28 @@ class ProcessTransportTest {
         assertTrue(command.contains("permission-tool"))
     }
     
-    // TODO: Fix mockk issues with Java 21 ProcessBuilder
-    // @Test
+    @Test
     fun `should throw CLINotFoundException when CLI not found`() = runTest {
         val options = ClaudeCodeOptions()
         
-        // Mock ProcessBuilder to simulate file not found
-        mockkConstructor(ProcessBuilder::class)
-        every { anyConstructed<ProcessBuilder>().start() } throws 
+        // Mock ProcessFactory to simulate file not found
+        val mockProcessFactory = mockk<ProcessFactory>()
+        every { mockProcessFactory.createProcess(any(), any(), any()) } throws 
             java.io.IOException("Cannot run program \"/nonexistent/path/to/claude\": error=2, No such file or directory")
         
         val transport = ProcessTransport(
             prompt = "Test",
             options = options,
-            cliPath = Paths.get("/nonexistent/path/to/claude")
+            cliPath = Paths.get("/nonexistent/path/to/claude"),
+            processFactory = mockProcessFactory
         )
         
         assertThrows<CLINotFoundException> {
             transport.connect()
         }
-        
-        unmockkConstructor(ProcessBuilder::class)
     }
     
-    // TODO: Fix mockk issues with Java 21 ProcessBuilder
-    // @Test
+    @Test
     fun `should parse streaming JSON correctly`() = runTest {
         val options = ClaudeCodeOptions()
         
@@ -139,13 +136,14 @@ class ProcessTransportTest {
         every { mockProcess.exitValue() } returns 0
         every { mockProcess.destroyForcibly() } returns mockProcess
         
-        mockkConstructor(ProcessBuilder::class)
-        every { anyConstructed<ProcessBuilder>().start() } returns mockProcess
+        val mockProcessFactory = mockk<ProcessFactory>()
+        every { mockProcessFactory.createProcess(any(), any(), any()) } returns mockProcess
         
         val transport = ProcessTransport(
             prompt = "Hello",
             options = options,
-            cliPath = Paths.get("/usr/bin/claude")
+            cliPath = Paths.get("/usr/bin/claude"),
+            processFactory = mockProcessFactory
         )
         
         transport.connect()
@@ -160,12 +158,9 @@ class ProcessTransportTest {
         
         transport.disconnect()
         assertFalse(transport.isConnected())
-        
-        unmockkConstructor(ProcessBuilder::class)
     }
     
-    // TODO: Fix mockk issues with Java 21 ProcessBuilder
-    // @Test
+    @Test
     fun `should handle process errors correctly`() = runTest {
         val options = ClaudeCodeOptions()
         
@@ -180,13 +175,14 @@ class ProcessTransportTest {
         every { mockProcess.isAlive } returns false
         every { mockProcess.exitValue() } returns 1
         
-        mockkConstructor(ProcessBuilder::class)
-        every { anyConstructed<ProcessBuilder>().start() } returns mockProcess
+        val mockProcessFactory = mockk<ProcessFactory>()
+        every { mockProcessFactory.createProcess(any(), any(), any()) } returns mockProcess
         
         val transport = ProcessTransport(
             prompt = "Test",
             options = options,
-            cliPath = Paths.get("/usr/bin/claude")
+            cliPath = Paths.get("/usr/bin/claude"),
+            processFactory = mockProcessFactory
         )
         
         transport.connect()
@@ -194,7 +190,5 @@ class ProcessTransportTest {
         assertThrows<ProcessException> {
             transport.receiveMessages().toList()
         }
-        
-        unmockkConstructor(ProcessBuilder::class)
     }
 }

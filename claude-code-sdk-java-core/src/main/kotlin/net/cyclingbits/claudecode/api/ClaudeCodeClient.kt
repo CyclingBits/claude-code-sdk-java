@@ -39,7 +39,36 @@ import java.util.concurrent.CompletableFuture
 public class ClaudeCodeClient @JvmOverloads constructor(
     private val cliPath: Path? = null
 ) : AutoCloseable, Closeable {
-    private val internalClient = InternalClient()
+    private val internalClient: InternalClient
+    private val skipVerification: Boolean
+    
+    init {
+        this.internalClient = InternalClient()
+        this.skipVerification = false
+    }
+    
+    /**
+     * Internal constructor for testing purposes.
+     * @suppress
+     */
+    internal constructor(
+        cliPath: Path? = null,
+        internalClient: InternalClient,
+        skipVerification: Boolean = true
+    ) : this(cliPath) {
+        @Suppress("UNUSED_EXPRESSION")
+        this.internalClient
+        @Suppress("UNUSED_EXPRESSION")
+        this.skipVerification
+        
+        val clientField = this::class.java.getDeclaredField("internalClient")
+        clientField.isAccessible = true
+        clientField.set(this, internalClient)
+        
+        val skipField = this::class.java.getDeclaredField("skipVerification")
+        skipField.isAccessible = true
+        skipField.set(this, skipVerification)
+    }
     
     /**
      * Coroutine scope for managing async operations.
@@ -53,8 +82,10 @@ public class ClaudeCodeClient @JvmOverloads constructor(
     
     init {
         // Verify CLI is available during client creation
-        runBlocking {
-            internalClient.verifyCliAvailable(cliPath)
+        if (!skipVerification) {
+            runBlocking {
+                internalClient.verifyCliAvailable(cliPath)
+            }
         }
     }
     

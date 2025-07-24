@@ -18,6 +18,10 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testImplementation("com.willowtreeapps.assertk:assertk:0.28.1")
     
+    // Mockito for Java tests
+    testImplementation("org.mockito:mockito-core:5.15.2")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
+    
     // Fix JUnit platform version alignment
     testImplementation("org.junit.platform:junit-platform-launcher:1.11.4")
 }
