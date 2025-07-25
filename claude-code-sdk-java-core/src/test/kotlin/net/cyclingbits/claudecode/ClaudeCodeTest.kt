@@ -1,27 +1,9 @@
 package net.cyclingbits.claudecode
 
-import net.cyclingbits.claudecode.api.ClaudeCodeClient
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
 class ClaudeCodeTest {
-    
-    @Test
-    fun `claudeCodeClient function should create new instance`() {
-        // This uses the constructor without CLI path, which skips verification
-        val client = claudeCodeClient()
-        assertNotNull(client)
-    }
-    
-    @Test
-    fun `claudeCodeClient function should create different instances`() {
-        val client1 = claudeCodeClient()
-        val client2 = claudeCodeClient()
-        
-        assertNotSame(client1, client2, "Should create different instances")
-    }
     
     @Test
     fun `ClaudeCode is singleton object`() {
@@ -31,4 +13,9 @@ class ClaudeCodeTest {
         
         assertSame(instance1, instance2, "ClaudeCode should be a singleton")
     }
+    
+    // Note: We cannot test createClient() methods without mocking
+    // because they verify CLI availability, which is not available in CI.
+    // These are tested indirectly through ClaudeCodeClientTest
+    // which uses mocked internal client.
 }

@@ -23,6 +23,10 @@ import org.junit.jupiter.api.assertThrows
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import net.cyclingbits.claudecode.exceptions.ClaudeSDKException
 
 class ClaudeCodeClientTest {
 
@@ -31,23 +35,31 @@ class ClaudeCodeClientTest {
 
     @BeforeEach
     fun setup() {
-        mockInternalClient = mockk()
-
-        // Mock verifyCliAvailable to do nothing by default
+        // Create and set up mock internal client
+        mockInternalClient = mockk(relaxed = true)
+        
+        // Mock specific behaviors we need
         coEvery { mockInternalClient.verifyCliAvailable(any()) } just runs
 
-        // Create client with mocked internal client
-        client = ClaudeCodeClient(
-            cliPath = null,
-            internalClient = mockInternalClient,
-            skipVerification = true
-        )
+        // Create client using constructor injection - this is the safest approach
+        // We need to use reflection to bypass the init block in the primary constructor
+        val clazz = ClaudeCodeClient::class.java
+        val constructor = clazz.declaredConstructors.find { 
+            it.parameterCount == 3 // The internal constructor has 3 params
+        }!!
+        constructor.isAccessible = true
+        
+        client = constructor.newInstance(
+            null, // cliPath
+            mockInternalClient, // internalClient
+            true // skipVerification
+        ) as ClaudeCodeClient
     }
 
     @AfterEach
     fun tearDown() {
-        unmockkAll()
         client.close()
+        unmockkAll()
     }
 
     @Test

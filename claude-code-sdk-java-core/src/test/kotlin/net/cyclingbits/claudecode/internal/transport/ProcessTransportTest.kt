@@ -22,6 +22,7 @@ import kotlin.test.assertContains
 
 class ProcessTransportTest {
     
+    
     @Test
     fun `should build correct command with basic options`() = runTest {
         val options = ClaudeCodeOptions(
@@ -203,8 +204,12 @@ class ProcessTransportTest {
         // So sendRequest is a no-op
         val mockProcess = mockk<Process>(relaxed = true)
         val outputStream = ByteArrayOutputStream()
+        val inputStream = ByteArrayInputStream(byteArrayOf())
+        val errorStream = ByteArrayInputStream(byteArrayOf())
         
         every { mockProcess.outputStream } returns outputStream
+        every { mockProcess.inputStream } returns inputStream
+        every { mockProcess.errorStream } returns errorStream
         every { mockProcess.isAlive } returns true
         
         val mockProcessFactory = mockk<ProcessFactory>()
@@ -213,6 +218,7 @@ class ProcessTransportTest {
         val transport = ProcessTransport(
             prompt = "Test",
             options = ClaudeCodeOptions(),
+            cliPath = Paths.get("/usr/bin/claude"), // Use explicit path to avoid findCli()
             processFactory = mockProcessFactory
         )
         
