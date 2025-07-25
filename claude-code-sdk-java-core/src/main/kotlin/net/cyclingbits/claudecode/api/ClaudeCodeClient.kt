@@ -37,38 +37,10 @@ import java.util.concurrent.CompletableFuture
  * ```
  */
 public class ClaudeCodeClient @JvmOverloads constructor(
-    private val cliPath: Path? = null
+    private val cliPath: Path? = null,
+    skipVerification: Boolean = false
 ) : AutoCloseable, Closeable {
-    private val internalClient: InternalClient
-    private val skipVerification: Boolean
-    
-    init {
-        this.internalClient = InternalClient()
-        this.skipVerification = false
-    }
-    
-    /**
-     * Internal constructor for testing purposes.
-     * @suppress
-     */
-    internal constructor(
-        cliPath: Path? = null,
-        internalClient: InternalClient,
-        skipVerification: Boolean = true
-    ) : this(cliPath) {
-        @Suppress("UNUSED_EXPRESSION")
-        this.internalClient
-        @Suppress("UNUSED_EXPRESSION")
-        this.skipVerification
-        
-        val clientField = this::class.java.getDeclaredField("internalClient")
-        clientField.isAccessible = true
-        clientField.set(this, internalClient)
-        
-        val skipField = this::class.java.getDeclaredField("skipVerification")
-        skipField.isAccessible = true
-        skipField.set(this, skipVerification)
-    }
+    private val internalClient: InternalClient = InternalClient()
     
     /**
      * Coroutine scope for managing async operations.
@@ -86,6 +58,29 @@ public class ClaudeCodeClient @JvmOverloads constructor(
             runBlocking {
                 internalClient.verifyCliAvailable(cliPath)
             }
+        }
+    }
+    
+    companion object {
+        /**
+         * Creates a test instance with a mocked internal client.
+         * This is only for internal testing purposes.
+         * @suppress
+         */
+        @JvmStatic
+        internal fun createForTesting(
+            cliPath: Path? = null,
+            internalClient: InternalClient
+        ): ClaudeCodeClient {
+            // Create instance with skip verification
+            val client = ClaudeCodeClient(cliPath, skipVerification = true)
+            
+            // Replace the internal client using reflection
+            val clientField = ClaudeCodeClient::class.java.getDeclaredField("internalClient")
+            clientField.isAccessible = true
+            clientField.set(client, internalClient)
+            
+            return client
         }
     }
     

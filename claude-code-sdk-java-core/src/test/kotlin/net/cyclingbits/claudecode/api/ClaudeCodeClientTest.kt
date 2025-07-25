@@ -41,19 +41,11 @@ class ClaudeCodeClientTest {
         // Mock specific behaviors we need
         coEvery { mockInternalClient.verifyCliAvailable(any()) } just runs
 
-        // Create client using constructor injection - this is the safest approach
-        // We need to use reflection to bypass the init block in the primary constructor
-        val clazz = ClaudeCodeClient::class.java
-        val constructor = clazz.declaredConstructors.find { 
-            it.parameterCount == 3 // The internal constructor has 3 params
-        }!!
-        constructor.isAccessible = true
-        
-        client = constructor.newInstance(
-            null, // cliPath
-            mockInternalClient, // internalClient
-            true // skipVerification
-        ) as ClaudeCodeClient
+        // Create client using the createForTesting method which bypasses CLI verification
+        client = ClaudeCodeClient.createForTesting(
+            cliPath = null,
+            internalClient = mockInternalClient
+        )
     }
 
     @AfterEach
