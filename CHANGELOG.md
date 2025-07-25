@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.2.0](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.1.0...v1.2.0) (2025-07-25)
+
+
+### Features
+
+* Add maxThinkingTokens support to ProcessTransport ([329387a](https://github.com/CyclingBits/claude-code-sdk-java/commit/329387a7517a4cbdfc5e02cbef0b6bedabd8b4dd))
+
+
+### Bug Fixes
+
+* Enable unit tests to run without Claude CLI ([bc09481](https://github.com/CyclingBits/claude-code-sdk-java/commit/bc094818c44d50383924d98dc7ff2d9488914433))
+* Fix failing unit tests in CI environment ([d0e9bc5](https://github.com/CyclingBits/claude-code-sdk-java/commit/d0e9bc556288f903c3bd43e2607b6a1a7f58e99d))
+
+
+### Documentation
+
+* Add release-please markers to badges ([badf7c5](https://github.com/CyclingBits/claude-code-sdk-java/commit/badf7c5aee71d582166d90887e810aa6c67c7c06))
+
 ## [1.1.0](https://github.com/CyclingBits/claude-code-sdk-java/compare/v1.0.1...v1.1.0) (2025-07-14)
 
 
