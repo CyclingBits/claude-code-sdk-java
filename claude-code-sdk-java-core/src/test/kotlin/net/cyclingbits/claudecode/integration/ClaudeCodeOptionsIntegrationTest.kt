@@ -12,6 +12,7 @@ import net.cyclingbits.claudecode.types.ClaudeCodeOptions
 import net.cyclingbits.claudecode.types.PermissionMode
 import net.cyclingbits.claudecode.types.ResultMessage
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.nio.file.Paths
@@ -33,6 +34,7 @@ import kotlin.time.Duration.Companion.seconds
  * 2. You must be authenticated
  * 3. You must have sufficient credits in your account
  */
+@Tag("integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ClaudeCodeOptionsIntegrationTest {
 
@@ -48,6 +50,15 @@ class ClaudeCodeOptionsIntegrationTest {
             }
             return false
         }
+
+        // Default options for all tests
+        private fun getDefaultOptions() = ClaudeCodeOptions(
+            continueConversation = false,
+            permissionMode = PermissionMode.BYPASS_PERMISSIONS,
+            maxTurns = 1,
+            timeoutMs = 120_000,
+            systemPrompt = "You must respond in English only."
+        )
     }
 
     @BeforeAll
@@ -57,7 +68,7 @@ class ClaudeCodeOptionsIntegrationTest {
             try {
                 val client = ClaudeCodeClient()
                 val messages = withTimeout(30.seconds) {
-                    client.query("Say 'OK'").toList()
+                    client.query("Say 'OK'", getDefaultOptions()).toList()
                 }
                 val assistantMessage = messages.filterIsInstance<AssistantMessage>().firstOrNull()
                 if (assistantMessage != null) {
@@ -74,7 +85,7 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // This is the example mentioned by the user
-        val options = ClaudeCodeOptions(continueConversation = false)
+        val options = getDefaultOptions()
         val client = ClaudeCodeClient()
 
         // First query
@@ -107,7 +118,7 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // Test with a shorter timeout
-        val options = ClaudeCodeOptions(timeoutMs = 30_000) // 30 seconds
+        val options = getDefaultOptions().copy(timeoutMs = 30_000) // 30 seconds
         val client = ClaudeCodeClient()
 
         val messages = withTimeout(45.seconds) { // Give a bit more time for the test itself
@@ -127,8 +138,8 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test with maxTurns configuration`() = runBlocking {
         if (creditError) return@runBlocking
 
-        // Limit to just 1 turn
-        val options = ClaudeCodeOptions(maxTurns = 1)
+        // Limit to just 1 turn - already default
+        val options = getDefaultOptions()
         val client = ClaudeCodeClient()
 
         val messages = withTimeout(1.minutes) {
@@ -148,7 +159,7 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // Only allow read operations, no write/edit
-        val options = ClaudeCodeOptions(
+        val options = getDefaultOptions().copy(
             allowedTools = listOf("read_file", "list_files", "search_files"),
             disallowedTools = listOf("write_file", "edit_file", "delete_file")
         )
@@ -183,6 +194,12 @@ class ClaudeCodeOptionsIntegrationTest {
             client.query(
                 ClaudeCodeRequest.builder()
                     .prompt("Explain what a monad is in functional programming in 2-3 sentences.")
+                    .systemPrompt("You must respond in English only.")
+                    .continueConversation(false)
+                    .cwd(Paths.get("tmp"))
+                    .permissionMode(PermissionMode.BYPASS_PERMISSIONS)
+                    .maxTurns(1)
+                    .timeoutMs(60_000)
                     .build()
             )
                 .assistantMessages()
@@ -200,8 +217,8 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test with custom system prompt`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
-            systemPrompt = "You are a pirate. Always respond in pirate speak with 'Arrr' and 'matey'."
+        val options = getDefaultOptions().copy(
+            systemPrompt = "You must respond in English only. You are a pirate. Always respond in pirate speak with 'Arrr' and 'matey'."
         )
         val client = ClaudeCodeClient()
 
@@ -224,10 +241,7 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test with permission mode bypass`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
-            permissionMode = PermissionMode.BYPASS_PERMISSIONS,
-            continueConversation = false
-        )
+        val options = getDefaultOptions() // Already has BYPASS_PERMISSIONS
         val client = ClaudeCodeClient()
 
         val messages = withTimeout(1.minutes) {
@@ -245,7 +259,7 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test complex multi-turn conversation`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
+        val options = getDefaultOptions().copy(
             continueConversation = true,
             maxTurns = 3
         )
@@ -287,9 +301,8 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         val tempDir = Paths.get(System.getProperty("java.io.tmpdir"))
-        val options = ClaudeCodeOptions(
-            cwd = tempDir,
-            continueConversation = false
+        val options = getDefaultOptions().copy(
+            cwd = tempDir
         )
         val client = ClaudeCodeClient()
 
@@ -313,9 +326,8 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test error handling with invalid model`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
-            model = "invalid-model-name-xyz",
-            continueConversation = false
+        val options = getDefaultOptions().copy(
+            model = "invalid-model-name-xyz"
         )
         val client = ClaudeCodeClient()
 
@@ -354,6 +366,12 @@ class ClaudeCodeOptionsIntegrationTest {
             client.query(
                 ClaudeCodeRequest.builder()
                     .prompt("Count from 1 to 3, one number per line")
+                    .systemPrompt("You must respond in English only.")
+                    .continueConversation(false)
+                    .cwd(Paths.get("tmp"))
+                    .permissionMode(PermissionMode.BYPASS_PERMISSIONS)
+                    .maxTurns(1)
+                    .timeoutMs(60_000)
                     .build()
             )
                 .textContent()
@@ -372,9 +390,13 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         val client = ClaudeCodeClient()
+        
+        println("Starting test result message cost tracking...")
+        val options = getDefaultOptions()
+        println("Using options: $options")
 
-        val messages = withTimeout(1.minutes) {
-            client.query("What is 2+2?").toList()
+        val messages = withTimeout(2.minutes) {
+            client.query("What is 2+2?", options).toList()
         }
 
         val assistantMessage = messages.filterIsInstance<AssistantMessage>().firstOrNull()
@@ -397,9 +419,8 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test with multiple allowed tools for code analysis`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
-            allowedTools = listOf("read_file", "search_files", "list_files"),
-            continueConversation = false
+        val options = getDefaultOptions().copy(
+            allowedTools = listOf("read_file", "search_files", "list_files")
         )
         val client = ClaudeCodeClient()
 
@@ -427,7 +448,10 @@ class ClaudeCodeOptionsIntegrationTest {
         // Using the full request builder
         val request = ClaudeCodeRequest.builder()
             .prompt("Generate a random number between 1 and 10")
+            .systemPrompt("You must respond in English only.")
             .continueConversation(false)
+            .cwd(Paths.get("tmp"))
+            .permissionMode(PermissionMode.BYPASS_PERMISSIONS)
             .maxTurns(1)
             .timeoutMs(60_000)
             .build()
@@ -451,11 +475,9 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // Practical example: Allow only read operations for code review
-        val options = ClaudeCodeOptions(
+        val options = getDefaultOptions().copy(
             allowedTools = listOf("read_file", "search_files", "list_files"),
-            systemPrompt = "You are a code reviewer. Only analyze code, don't modify it.",
-            continueConversation = false,
-            maxTurns = 1
+            systemPrompt = "You must respond in English only. You are a code reviewer. Only analyze code, don't modify it."
         )
         val client = ClaudeCodeClient()
 
@@ -485,9 +507,7 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // Practical pattern: Quick questions without conversation history
-        val options = ClaudeCodeOptions(
-            continueConversation = false,
-            maxTurns = 1,
+        val options = getDefaultOptions().copy(
             timeoutMs = 30_000 // Quick timeout for simple questions
         )
         val client = ClaudeCodeClient()
@@ -527,10 +547,10 @@ class ClaudeCodeOptionsIntegrationTest {
         if (creditError) return@runBlocking
 
         // Practical pattern: Debugging session with conversation history
-        val options = ClaudeCodeOptions(
+        val options = getDefaultOptions().copy(
             continueConversation = true,
             maxTurns = 3,
-            systemPrompt = "You are helping debug Kotlin code. Be concise and practical."
+            systemPrompt = "You must respond in English only. You are helping debug Kotlin code. Be concise and practical."
         )
         val client = ClaudeCodeClient()
 
@@ -571,9 +591,8 @@ class ClaudeCodeOptionsIntegrationTest {
     fun `test timeout handling for long operations`() = runBlocking {
         if (creditError) return@runBlocking
 
-        val options = ClaudeCodeOptions(
-            timeoutMs = 5_000, // Very short timeout
-            continueConversation = false
+        val options = getDefaultOptions().copy(
+            timeoutMs = 5_000 // Very short timeout
         )
         val client = ClaudeCodeClient()
 

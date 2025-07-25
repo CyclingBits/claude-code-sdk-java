@@ -2,8 +2,6 @@ package net.cyclingbits.claudecode.types
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import org.jetbrains.annotations.Nullable
 import java.nio.file.Path
 
 /**

@@ -4,8 +4,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.*
 import okio.*
-import okio.buffer
-import okio.source
 import net.cyclingbits.claudecode.exceptions.*
 import net.cyclingbits.claudecode.types.ClaudeCodeOptions
 import net.cyclingbits.claudecode.types.McpHttpServerConfig
@@ -230,6 +228,12 @@ internal class ProcessTransport(
             add("--model")
             add(it)
         }
+        
+        // Add max thinking tokens support
+        if (options.maxThinkingTokens != 8000) { // Only add if not default
+            add("--max-thinking-tokens")
+            add(options.maxThinkingTokens.toString())
+        }
     }
     
     private fun buildConversationFlags(): List<String> = buildList {
@@ -380,6 +384,14 @@ internal class ProcessTransport(
                         
                         if (line.isBlank()) {
                             continue
+                        }
+                        
+                        // Check line size to prevent memory issues
+                        if (line.length > MAX_BUFFER_SIZE) {
+                            throw CLIJSONDecodeException(
+                                line.take(100) + "...",
+                                message = "JSON line exceeded maximum size of $MAX_BUFFER_SIZE bytes"
+                            )
                         }
                         
                         try {

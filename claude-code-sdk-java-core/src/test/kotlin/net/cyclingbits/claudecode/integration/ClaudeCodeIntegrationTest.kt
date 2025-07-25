@@ -3,14 +3,12 @@ package net.cyclingbits.claudecode.integration
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import kotlinx.serialization.json.Json
 import net.cyclingbits.claudecode.api.ClaudeCodeClient
-import net.cyclingbits.claudecode.types.AssistantMessage
-import net.cyclingbits.claudecode.types.SystemMessage
-import net.cyclingbits.claudecode.types.ResultMessage
+import net.cyclingbits.claudecode.types.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.nio.file.Paths
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
@@ -23,6 +21,7 @@ import kotlin.time.Duration.Companion.minutes
  * 1. Claude Code CLI must be installed: npm install -g @anthropic-ai/claude-code
  * 2. You must be authenticated
  */
+@Tag("integration")
 class ClaudeCodeIntegrationTest {
 
     private lateinit var client: ClaudeCodeClient
@@ -36,12 +35,19 @@ class ClaudeCodeIntegrationTest {
     fun `should execute simple query and receive response`() = runBlocking {
         // Given
         val prompt = "What is 2 + 2? Just give me the number."
+        val options = ClaudeCodeOptions(
+            continueConversation = false,
+            permissionMode = PermissionMode.BYPASS_PERMISSIONS,
+            maxTurns = 1,
+            timeoutMs = 60_000,
+            systemPrompt = "You must respond in English only."
+        )
         println("Prompt: $prompt")
 
         try {
             // When
             val messages = withTimeout(1.minutes) {
-                client.query(prompt).toList()
+                client.query(prompt, options).toList()
             }
             println("=== Received Messages ===")
             messages.forEach { message ->

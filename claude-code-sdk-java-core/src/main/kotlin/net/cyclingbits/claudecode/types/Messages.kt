@@ -2,7 +2,9 @@ package net.cyclingbits.claudecode.types
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Base interface for all message types.
@@ -105,17 +107,20 @@ public data class ResultMessage(
      * Get input tokens from usage data.
      */
     public val inputTokens: Int?
-        get() = usage?.get("input_tokens")?.toString()?.toIntOrNull()
+        get() = usage?.get("input_tokens")?.toIntOrNull()
     
     /**
      * Get output tokens from usage data.
      */
     public val outputTokens: Int?
-        get() = usage?.get("output_tokens")?.toString()?.toIntOrNull()
+        get() = usage?.get("output_tokens")?.toIntOrNull()
     
     /**
      * Get total tokens from usage data.
      */
     public val totalTokens: Int?
-        get() = usage?.get("total_tokens")?.toString()?.toIntOrNull()
+        get() = usage?.get("total_tokens")?.toIntOrNull()
 }
+
+// Extension function to simplify token extraction
+private fun JsonElement.toIntOrNull(): Int? = this.jsonPrimitive.content.toIntOrNull()
