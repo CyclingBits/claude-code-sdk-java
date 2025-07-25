@@ -1,8 +1,8 @@
 # Claude Code SDK for Java/Kotlin
 
 <!-- x-release-please-start-version -->
-[![Maven Central](https://img.shields.io/maven-central/v/net.cyclingbits/claude-code-sdk-java)](https://central.sonatype.com/artifact/net.cyclingbits/claude-code-sdk-java/1.1.0)
-[![javadoc](https://javadoc.io/badge2/net.cyclingbits/claude-code-sdk-java/javadoc.svg)](https://javadoc.io/doc/net.cyclingbits/claude-code-sdk-java/1.1.0)
+[![Maven Central](https://img.shields.io/maven-central/v/net.cyclingbits/claude-code-sdk-java)](https://central.sonatype.com/artifact/net.cyclingbits/claude-code-sdk-java/1.2.0)
+[![javadoc](https://javadoc.io/badge2/net.cyclingbits/claude-code-sdk-java/javadoc.svg)](https://javadoc.io/doc/net.cyclingbits/claude-code-sdk-java/1.2.0)
 <!-- x-release-please-end -->
 
 JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/Flow) and Java (CompletableFuture) APIs.
@@ -15,7 +15,7 @@ JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/
 <dependency>
     <groupId>net.cyclingbits</groupId>
     <artifactId>claude-code-sdk-java</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
@@ -23,14 +23,14 @@ JVM SDK for interacting with Claude Code CLI, providing both Kotlin (coroutines/
 ### Gradle
 <!-- x-release-please-start-version -->
 ```gradle
-implementation 'net.cyclingbits:claude-code-sdk-java:1.1.0'
+implementation 'net.cyclingbits:claude-code-sdk-java:1.2.0'
 ```
 <!-- x-release-please-end -->
 
 ### Gradle (Kotlin DSL)
 <!-- x-release-please-start-version -->
 ```kotlin
-implementation("net.cyclingbits:claude-code-sdk-java:1.1.0")
+implementation("net.cyclingbits:claude-code-sdk-java:1.2.0")
 ```
 <!-- x-release-please-end -->
 
