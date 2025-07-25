@@ -1,7 +1,9 @@
 package net.cyclingbits.claudecode.types
 
 import net.cyclingbits.claudecode.exceptions.ClaudeSDKException
+import net.cyclingbits.claudecode.exceptions.TimeoutException
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -28,6 +30,19 @@ class OutcomeTest {
         
         // Test getOrThrow
         assertEquals("test", successOutcome.getOrThrow())
+        
+        // Test getOrThrow with Error
+        val errorOutcome = Outcome.Error(ClaudeSDKException("test error"))
+        val thrownException = assertThrows<ClaudeSDKException> {
+            errorOutcome.getOrThrow()
+        }
+        assertEquals("test error", thrownException.message)
+        
+        // Test getOrThrow with Timeout
+        val timeoutOutcome = Outcome.Timeout(5000)
+        assertThrows<TimeoutException> {
+            timeoutOutcome.getOrThrow()
+        }
         
         // Test onSuccess
         var successCalled = false
@@ -148,5 +163,70 @@ class OutcomeTest {
         assertFalse(successCalled)
         assertFalse(errorCalled)
         assertTrue(timeoutCalled)
+    }
+    
+    @Test
+    fun `map should not transform Error outcomes`() {
+        val errorOutcome: Outcome<String> = Outcome.Error(
+            exception = ClaudeSDKException("error"),
+            partialMessages = emptyList(),
+            durationMs = 100
+        )
+        
+        val mapped = errorOutcome.map { it.uppercase() }
+        assertTrue(mapped is Outcome.Error)
+        assertEquals("error", (mapped as Outcome.Error).exception.message)
+        assertEquals(100, mapped.durationMs)
+    }
+    
+    @Test
+    fun `map should not transform Timeout outcomes`() {
+        val timeoutOutcome: Outcome<String> = Outcome.Timeout(
+            durationMs = 5000,
+            partialMessages = emptyList()
+        )
+        
+        val mapped = timeoutOutcome.map { it.uppercase() }
+        assertTrue(mapped is Outcome.Timeout)
+        assertEquals(5000, (mapped as Outcome.Timeout).durationMs)
+    }
+    
+    @Test
+    fun `getOrNull should return null for Timeout`() {
+        val timeoutOutcome = Outcome.Timeout(5000)
+        assertNull(timeoutOutcome.getOrNull())
+    }
+    
+    @Test
+    fun `onSuccess should not be called for Error or Timeout`() {
+        var called = false
+        
+        Outcome.Error(ClaudeSDKException("error")).onSuccess { called = true }
+        assertFalse(called, "onSuccess should not be called for Error")
+        
+        Outcome.Timeout(5000).onSuccess { called = true }
+        assertFalse(called, "onSuccess should not be called for Timeout")
+    }
+    
+    @Test
+    fun `onError should not be called for Success or Timeout`() {
+        var called = false
+        
+        Outcome.Success("value", emptyList(), 100).onError { called = true }
+        assertFalse(called, "onError should not be called for Success")
+        
+        Outcome.Timeout(5000).onError { called = true }
+        assertFalse(called, "onError should not be called for Timeout")
+    }
+    
+    @Test
+    fun `onTimeout should not be called for Success or Error`() {
+        var called = false
+        
+        Outcome.Success("value", emptyList(), 100).onTimeout { called = true }
+        assertFalse(called, "onTimeout should not be called for Success")
+        
+        Outcome.Error(ClaudeSDKException("error")).onTimeout { called = true }
+        assertFalse(called, "onTimeout should not be called for Error")
     }
 }

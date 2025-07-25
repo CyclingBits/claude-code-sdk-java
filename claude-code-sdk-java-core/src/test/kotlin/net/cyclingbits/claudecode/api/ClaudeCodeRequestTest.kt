@@ -1,13 +1,13 @@
 package net.cyclingbits.claudecode.api
 
-import net.cyclingbits.claudecode.types.ClaudeCodeOptions
-import net.cyclingbits.claudecode.types.PermissionMode
+import net.cyclingbits.claudecode.types.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Paths
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ClaudeCodeRequestTest {
     
@@ -123,5 +123,76 @@ class ClaudeCodeRequestTest {
         
         // All methods should return the same builder instance
         assertEquals(builder, sameBuilder)
+    }
+    
+    @Test
+    fun `builder should support MCP configuration`() {
+        val mcpServers = mapOf(
+            "filesystem" to McpStdioServerConfig(
+                type = "stdio",
+                command = "npx",
+                args = listOf("@modelcontextprotocol/server-filesystem", "/path"),
+                env = mapOf("DEBUG" to "1")
+            ),
+            "github" to McpStdioServerConfig(
+                type = "stdio",
+                command = "npx",
+                args = listOf("@modelcontextprotocol/server-github"),
+                env = mapOf("GITHUB_TOKEN" to "token123")
+            )
+        )
+        
+        val mcpTools = listOf("mcp__filesystem__read", "mcp__github__search")
+        
+        val request = ClaudeCodeRequest.builder()
+            .prompt("List files")
+            .mcpServers(mcpServers)
+            .mcpTools(mcpTools)
+            .build()
+        
+        assertEquals(mcpServers, request.options.mcpServers)
+        assertEquals(mcpTools, request.options.mcpTools)
+        assertEquals(2, request.options.mcpServers.size)
+        assertTrue(request.options.mcpServers.containsKey("filesystem"))
+        assertTrue(request.options.mcpServers.containsKey("github"))
+    }
+    
+    @Test
+    fun `builder should support different MCP server types`() {
+        val mcpServers = mapOf(
+            "stdio-server" to McpStdioServerConfig(
+                type = "stdio",
+                command = "test-cmd",
+                args = listOf("arg1"),
+                env = mapOf("KEY" to "value")
+            ),
+            "sse-server" to McpSSEServerConfig(
+                type = "sse",
+                url = "https://sse.example.com",
+                headers = mapOf("Authorization" to "Bearer token")
+            ),
+            "http-server" to McpHttpServerConfig(
+                type = "http",
+                url = "https://api.example.com",
+                headers = mapOf("API-Key" to "key123")
+            )
+        )
+        
+        val request = ClaudeCodeRequest.builder()
+            .prompt("Test")
+            .mcpServers(mcpServers)
+            .build()
+        
+        assertEquals(3, request.options.mcpServers.size)
+        
+        val stdioServer = request.options.mcpServers["stdio-server"] as McpStdioServerConfig
+        assertEquals("test-cmd", stdioServer.command)
+        assertEquals(listOf("arg1"), stdioServer.args)
+        
+        val sseServer = request.options.mcpServers["sse-server"] as McpSSEServerConfig
+        assertEquals("https://sse.example.com", sseServer.url)
+        
+        val httpServer = request.options.mcpServers["http-server"] as McpHttpServerConfig
+        assertEquals("https://api.example.com", httpServer.url)
     }
 }
